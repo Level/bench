@@ -20,7 +20,7 @@
     "fast-deep-equal": "~2.0.1",
     "fast-glob": "~2.2.7",
     "human-number": "~1.0.3",
-    "level-test": "github:Level/level-test#5130613",
+    "level-test": "github:Level/level-test#96e99e3",
     "mkdirp": "~0.5.1",
     "monotonic-timestamp": "0.0.9",
     "resolve": "~1.11.0",
