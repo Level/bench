@@ -116,7 +116,7 @@ Yet to document.
 
 ### `write`
 
-Perform concurrent `put()` operations on random string keys. Options:
+Perform concurrent `put()` operations on random string keys and values. Options:
 
 - `-n`: amount of operations, default 1e6
 - `--concurrency`: default 4
