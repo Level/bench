@@ -53,12 +53,7 @@ exports.run = function (factory, stream, options) {
     }
 
     function write () {
-      if (totalWrites++ === options.n) {
-        db.close(function () {
-          report(Date.now() - startTime)
-        })
-      }
-
+      if (totalWrites++ === options.n) return report(Date.now() - startTime)
       if (inProgress >= options.concurrency || totalWrites > options.n) return
 
       inProgress++
