@@ -30,7 +30,8 @@ Yields:
 - Derives plot labels from benchmark metadata (package, platform, ..)
 - Uses unique temporary directories for every db
 - Can optionally wrap the db in `encoding-down` and/or `levelup`
-- Also takes `level` or something else that's already a `levelup` interface.
+- Also takes `level` or something else that's already a `levelup` interface
+- Also takes `ioredis` and `sqlite3` (see [`third-party/`](./third-party)).
 
 ## Usage
 
