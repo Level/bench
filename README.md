@@ -141,6 +141,16 @@ Perform concurrent `put()` operations on sorted string keys. Options:
 - `--concurrency`: default 10
 - `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
 
+### `batch-put`
+
+Same as `write`, but in batches rather than singular puts. Perform concurrent `batch()` operations on random string keys and values. Options:
+
+- `-n`: amount of operations, default 1e6
+- `--batchSize`: default 1000
+- `--chained`: boolean flag, default false, use chained batch
+- `--concurrency`: default 1
+- `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
+
 <!-- ### Other ideas
 
 - Write batches in different sizes (feature: define a matrix)

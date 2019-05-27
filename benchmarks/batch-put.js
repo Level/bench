@@ -7,8 +7,10 @@ const keyTmpl = '0000000000000000'
 exports.defaults = {
   benchmark: {
     n: 1e6,
-    concurrency: 4,
-    valueSize: 100
+    batchSize: 1e3,
+    concurrency: 1,
+    valueSize: 100,
+    chained: false
   }
 }
 
@@ -26,6 +28,7 @@ exports.run = function (factory, stream, options) {
 
   function start (db) {
     const startTime = Date.now()
+    const batchSize = options.batchSize
 
     let inProgress = 0
     let totalWrites = 0
@@ -53,8 +56,8 @@ exports.run = function (factory, stream, options) {
     }
 
     function write () {
-      if (totalWrites++ === options.n) return report(Date.now() - startTime)
-      if (inProgress >= options.concurrency || totalWrites > options.n) return
+      if (totalWrites >= options.n) return report(Date.now() - startTime)
+      if (inProgress >= options.concurrency) return
 
       inProgress++
 
@@ -63,6 +66,7 @@ exports.run = function (factory, stream, options) {
           Math.round(totalWrites / options.n * 100) + '%')
       }
 
+      // TODO: batchSize should be a multiple of 10
       if (totalWrites % 1000 === 0) {
         elapsed = Date.now() - startTime
         stream.write(
@@ -75,25 +79,49 @@ exports.run = function (factory, stream, options) {
         timesAccum = 0
       }
 
-      // TODO: though we don't start the clock until after crypto.randomBytes(),
-      // due to concurrency there might be put() callbacks waiting in libuv
-      // while the main thread is blocked? hmz. Maybe use async randomBytes(),
-      // or pregenerated values (bonus: make them deterministic).
-      const key = make16CharPaddedKey()
-      const value = crypto.randomBytes(options.valueSize).toString('hex')
-      const start = process.hrtime()
+      let start
 
-      db.put(key, value, function (err) {
+      if (options.chained) {
+        const batch = db.batch()
+
+        for (let i = 0; i < batchSize; i++) {
+          // TODO: see comment in write.js
+          const key = make16CharPaddedKey()
+          const value = crypto.randomBytes(options.valueSize).toString('hex')
+
+          batch.put(key, value)
+        }
+
+        start = process.hrtime()
+        batch.write(onWrite)
+      } else {
+        const ops = new Array(batchSize)
+
+        for (let i = 0; i < batchSize; i++) {
+          // TODO: see comment in write.js
+          const key = make16CharPaddedKey()
+          const value = crypto.randomBytes(options.valueSize).toString('hex')
+
+          ops[i] = { type: 'put', key, value }
+        }
+
+        start = process.hrtime()
+        db.batch(ops, onWrite)
+      }
+
+      function onWrite (err) {
         if (err) throw err
 
         const duration = process.hrtime(start)
         const nano = (duration[0] * 1e9) + duration[1]
 
-        totalBytes += keyTmpl.length + options.valueSize
+        totalBytes += (keyTmpl.length + options.valueSize) * batchSize
+        totalWrites += batchSize
         timesAccum += nano
         inProgress--
+
         process.nextTick(write)
-      })
+      }
     }
 
     for (let i = 0; i < options.concurrency; i++) write()
