@@ -1,9 +1,9 @@
 'use strict'
 
 // Note: redis-server must be available in PATH
-const tmpRedis = require('haredis-tmp')
+const tmpRedis = require('tmp-redis')
 
-module.exports = function inject (ioredis) {
+module.exports = function inject (Redis) {
   return function (location, options, callback) {
     let redis
     let shutdown
@@ -22,11 +22,11 @@ module.exports = function inject (ioredis) {
       open: function (options, callback) {
         wrapper.status = 'opening'
 
-        tmpRedis([port], { verbose: true }, function (err, path, shutdown_) {
+        tmpRedis(port, function (err, shutdown_) {
           if (err) return callback(err)
 
           shutdown = shutdown_
-          redis = new ioredis({
+          redis = new Redis({
             port,
             retryStrategy: () => false,
             maxRetriesPerRequest: 0,

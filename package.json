@@ -25,12 +25,12 @@
     "monotonic-timestamp": "0.0.9",
     "resolve": "~1.11.0",
     "subarg": "~1.0.0",
+    "tmp-redis": "~1.0.0",
     "uuid": "~3.3.2"
   },
   "devDependencies": {
     "dependency-check": "^3.3.0",
     "hallmark": "^0.1.0",
-    "haredis-tmp": "github:vweevers/haredis-tmp#feat/windows-support",
     "level-community": "^3.0.0",
     "nyc": "^14.1.1",
     "standard": "^12.0.1",
