@@ -151,6 +151,24 @@ Same as `write`, but in batches rather than singular puts. Perform concurrent `b
 - `--concurrency`: default 1
 - `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
 
+### `self-distribution`
+
+_Not a benchmark, but a temporary cheat to reuse the tooling we have here to test (and visualize) some of the internals. Needs a valid `target` argument, same as real benchmarks, although that argument is not actually used._
+
+Generate keys with a certain order and probability distribution. Options:
+
+- `-n`: amount of keys to generate, default 5e3
+- Other options are passed to [`keyspace`](https://github.com/vweevers/keyspace)
+
+Example:
+
+```
+level-bench run self-distribution memdown -b [--distribution zipfian --skew 1]
+level-bench run self-distribution memdown -b [--distribution zipfian --skew=-1]
+level-bench run self-distribution memdown -b [--keys seq]
+level-bench plot self-distribution
+```
+
 <!-- ### Other ideas
 
 - Write batches in different sizes (feature: define a matrix)
