@@ -47,9 +47,11 @@ if (command === 'run') {
     process.exit()
   }
 
+  const type = /^self-/.test(benchmark) ? 'test' : 'benchmark'
+  const mainProps = type === 'test' ? ['harness'] : ['context', 'platform']
   const results = files.map(Result.fromFile)
-  const group = results[0].group(results, { include: ['context', 'platform'] })
-  const title = [`benchmark ${benchmark}`, group].filter(Boolean).join(' on ')
+  const group = results[0].group(results, { include: mainProps })
+  const title = [`${type} ${benchmark}`, group].filter(Boolean).join(' on ')
   const desc = results[0].group(results, { exclude: ['context', 'platform', 'harness'] }) || ''
   const pngFile = path.resolve('.', argv.out || `.benchmarks/${benchmark}.${Date.now()}.png`)
   const plt = benchmarks[benchmark].plot(title, desc, results)
