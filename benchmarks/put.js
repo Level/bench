@@ -14,7 +14,7 @@ exports.defaults = {
   }
 }
 
-exports.plot = require('./write.plot')
+exports.plot = require('./put.plot')
 
 exports.run = function (factory, stream, options) {
   const generator = keyspace(options.n, options)
