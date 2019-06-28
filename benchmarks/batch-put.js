@@ -14,7 +14,7 @@ exports.defaults = {
   }
 }
 
-exports.plot = require('./put.plot')
+exports.plot = require('./batch-put.plot')
 
 exports.run = function (factory, stream, options) {
   stream.write('Elapsed (ms), Entries, Bytes, Last 1000 Avg Time, MB/s\n')
