@@ -22,7 +22,6 @@ module.exports = function (title, description, results) {
     if (/seq/.test(res.meta.options.benchmark.keys)) return
 
     const file = res.csvFile
-    const title = results.length === 1 ? '' : res.id(results, 'default')
 
     return [
       `set size 1,${freqPlotsbHeight.toFixed(3)}`,

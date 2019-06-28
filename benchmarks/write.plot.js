@@ -8,7 +8,7 @@ module.exports = function (title, description, results) {
     const file = res.csvFile
     const title = res.id(results)
 
-    return `'${e(file)}' using ($1/1000):($4/1000000) title '${e(title)}' ls ${i + 1} axes x1y1`
+    return `'${e(file)}' using ($1/1000):($4) title '${e(title)}' ls ${i + 1} axes x1y1`
   })
 
   const throughputs = results.map(function (res, i) {
@@ -43,13 +43,13 @@ module.exports = function (title, description, results) {
 
     set title '${e(title)}' tc rgb "#cccccc" offset 0,0.7 font "Ubuntu Mono,12"
     set label 1 '${e(description)}' tc rgb "#999999" at graph 0.5,1.10 center front
-    set ylabel 'Milliseconds/write' tc rgb "#999999"
+    set ylabel 'SMA Milliseconds/write' tc rgb "#999999"
     set logscale y
     plot ${durations.join(', ')}
 
     set title ""
     set label 1 ""
-    set ylabel 'Throughput MB/s' tc rgb "#999999"
+    set ylabel 'CMA Throughput MB/s' tc rgb "#999999"
     set nologscale y
     plot ${throughputs.join(', ')}
   unset multiplot`

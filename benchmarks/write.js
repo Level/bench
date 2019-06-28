@@ -1,28 +1,25 @@
 'use strict'
 
-const crypto = require('crypto')
+const keyspace = require('keyspace')
 const ldu = require('../lib/level-du')
-const keyTmpl = '0000000000000000'
 
 exports.defaults = {
   benchmark: {
     n: 1e6,
     concurrency: 4,
-    valueSize: 100
+    valueSize: 100,
+    keys: 'random',
+    values: 'random',
+    seed: 'seed'
   }
 }
 
 exports.plot = require('./write.plot')
 
 exports.run = function (factory, stream, options) {
-  stream.write('Elapsed (ms), Entries, Bytes, Last 1000 Avg Time, MB/s\n')
+  const generator = keyspace(options.n, options)
 
-  function make16CharPaddedKey () {
-    const r = Math.floor(Math.random() * options.n)
-    const k = keyTmpl + r
-
-    return k.substr(k.length - 16)
-  }
+  stream.write('Elapsed (ms), Entries, Bytes, SMA ms/write, CMA MB/s\n')
 
   function start (db) {
     const startTime = Date.now()
@@ -69,18 +66,14 @@ exports.run = function (factory, stream, options) {
           elapsed +
           ',' + totalWrites +
           ',' + totalBytes +
-          ',' + Math.floor(timesAccum / 1000) +
-          ',' + (Math.floor(((totalBytes / 1048576) / (elapsed / 1000)) * 100) / 100) +
+          ',' + (timesAccum / 1000 / 1e6).toFixed(3) +
+          ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
           '\n')
         timesAccum = 0
       }
 
-      // TODO: though we don't start the clock until after crypto.randomBytes(),
-      // due to concurrency there might be put() callbacks waiting in libuv
-      // while the main thread is blocked? hmz. Maybe use async randomBytes(),
-      // or pregenerated values (bonus: make them deterministic).
-      const key = make16CharPaddedKey()
-      const value = crypto.randomBytes(options.valueSize).toString('hex')
+      const key = generator.key(totalWrites - 1)
+      const value = generator.value()
       const start = process.hrtime()
 
       db.put(key, value, function (err) {
@@ -89,7 +82,8 @@ exports.run = function (factory, stream, options) {
         const duration = process.hrtime(start)
         const nano = (duration[0] * 1e9) + duration[1]
 
-        totalBytes += keyTmpl.length + options.valueSize
+        // TODO: expose something like last "<key|value>Length" on the generator?
+        totalBytes += Buffer.byteLength(key) + Buffer.byteLength(value)
         timesAccum += nano
         inProgress--
         process.nextTick(write)

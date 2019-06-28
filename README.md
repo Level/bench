@@ -14,12 +14,12 @@
 
 ```
 npm i level-bench leveldown rocksdb
-npx level-bench run write leveldown
-npx level-bench run write rocksdb
-npx level-bench plot write
+npx level-bench run put leveldown
+npx level-bench run put rocksdb
+npx level-bench plot put
 ```
 
-Yields:
+Yields (outdated):
 
 ![Example plot](example.png)
 
@@ -39,9 +39,9 @@ Yields:
 
 Run a benchmark. The `benchmark` argument must be one of the named benchmarks listed below.
 
-The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run write leveldown`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`.
+The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run put leveldown`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`.
 
-To wrap `target` with `encoding-down` or `levelup` (you must install these dependencies yourself) pass `--encode` and/or `--levelup` (or `-el` for short). Alternatively `target` can be something that exports a `levelup` interface, for example `level-bench run write level`.
+To wrap `target` with `encoding-down` or `levelup` (you must install these dependencies yourself) pass `--encode` and/or `--levelup` (or `-el` for short). Alternatively `target` can be something that exports a `levelup` interface, for example `level-bench run put level`.
 
 If `target` does not create persistent databases (like `memdown` or `level-mem`) you must pass `--mem`.
 
@@ -57,37 +57,37 @@ We can compare the performance of two git branches:
 
 ```
 git checkout master && npm i
-level-bench run write
+level-bench run put
 
 git checkout wip && npm i
-level-bench run write
+level-bench run put
 ```
 
 Or check the overhead of `encoding-down`:
 
 ```
-level-bench run write memdown --mem
-level-bench run write memdown --mem --encode
+level-bench run put memdown --mem
+level-bench run put memdown --mem --encode
 ```
 
 Or a specific encoding:
 
 ```
-level-bench run write level --db [--valueEncoding utf8]
-level-bench run write level --db [--valueEncoding json]
+level-bench run put level --db [--valueEncoding utf8]
+level-bench run put level --db [--valueEncoding json]
 ```
 
 Or compare the effect of options:
 
 ```
-level-bench run write leveldown
-level-bench run write leveldown --db [ --no-compression ]
+level-bench run put leveldown
+level-bench run put leveldown --db [ --no-compression ]
 ```
 
 Then plot both (or more) runs with:
 
 ```
-level-bench plot write
+level-bench plot put
 ```
 
 <!-- Lastly, for the adventurous, you can swap out the prototype of `target` with for example some branch of `abstract-leveldown`:
@@ -95,8 +95,8 @@ level-bench plot write
 ```
 npm i memdown Level/abstract-leveldown#improved
 
-level-bench run write memdown --name baseline
-level-bench run write memdown --proto abstract-leveldown --name improved
+level-bench run put memdown --name baseline
+level-bench run put memdown --proto abstract-leveldown --name improved
 ``` -->
 
 #### Options
@@ -115,35 +115,35 @@ Yet to document.
 
 ## Benchmarks
 
-### `write`
+### `put`
 
-Perform concurrent `put()` operations on random string keys and values. Options:
+Perform concurrent `put()` operations on random or sequential string keys and values. Records the Simple Moving Average (SMA) of the duration of the last 1000 writes, as well as the Cumulative Moving Average (CMA) of the throughput in MB/s. Options:
 
 - `-n`: amount of operations, default 1e6
 - `--concurrency`: default 4
+- `--keys` (string): one of:
+  - `random` (default): generate pseudo-random numeric keys (0-N) with a certain probability `distribution`
+  - `seq`: non-random, sequential numeric keys (0-N)
+  - `seqReverse`: same keys but in reverse (N-0)
+- `--values` (string): one of:
+  - `random` (default): generate pseudo-random values
+  - `empty`: zero-length values or zero-filled if `valueSize` is set
+- `--seed` (string): seed to use for random numbers, defaults to `'seed'`
+- `--distribution` (string): one of [`zipfian`](https://github.com/vweevers/zipfian-integer), `uniform` (default)
+- `--skew` (floating-point number): Zipfian skew (default 0)
+- `--offset` (number): offset keys (for example to simulate timestamps)
 - `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
+- `--keyAsBuffer`, `--valueAsBuffer` (boolean): if not set, keys and values are written as strings (hex encoded).
 
-_Previously known as `db-bench.js` in `leveldown`._
+Tips:
 
-### `write-random`
-
-Perform concurrent `put()` operations on random UUID string keys. Options:
-
-- `-n`: amount of operations, default 1e7
-- `--concurrency`: default 10
-- `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
-
-### `write-sorted`
-
-Perform concurrent `put()` operations on sorted string keys. Options:
-
-- `-n`: amount of operations, default 1e7
-- `--concurrency`: default 10
-- `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
+- To benchmark writing sorted data, use `--keys seq` or `seqReverse`
+- Be mindful of `--concurrency` when using `--keys seq` or `seqReverse`: a high concurrency can counter the performance benefits of writing keys sequentially
+- To use the `zipfian` distribution with a negative skew, specify it as `--skew=-1` rather than `--skew -1` (which would be interpreted as a flag).
 
 ### `batch-put`
 
-Same as `write`, but in batches rather than singular puts. Perform concurrent `batch()` operations on random string keys and values. Options:
+Same as `put`, but in batches rather than singular puts. Perform concurrent `batch()` operations on random string keys and values. Options:
 
 - `-n`: amount of operations, default 1e6
 - `--batchSize`: default 1000
