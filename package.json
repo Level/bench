@@ -23,11 +23,9 @@
     "keyspace": "^0.0.1",
     "level-test": "~7.0.0",
     "mkdirp": "~0.5.1",
-    "monotonic-timestamp": "0.0.9",
     "resolve": "~1.11.0",
     "subarg": "~1.0.0",
-    "tmp-redis": "~1.0.0",
-    "uuid": "~3.3.2"
+    "tmp-redis": "~1.0.0"
   },
   "devDependencies": {
     "dependency-check": "^3.3.0",
