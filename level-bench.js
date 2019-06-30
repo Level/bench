@@ -10,6 +10,11 @@ const run = require('./lib/run')
 const Result = require('./lib/result')
 const benchmarks = require('./benchmarks')
 
+// https://github.com/substack/subarg/issues/7
+if (/\[\[|\]\]/.test(process.argv.slice(2).join(' '))) {
+  console.error('Subarg brackets must be surrounded by spaces')
+}
+
 const argv = require('subarg')(process.argv.slice(2), {
   boolean: ['encode', 'levelup'],
   alias: {
