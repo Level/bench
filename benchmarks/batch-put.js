@@ -1,8 +1,9 @@
 'use strict'
 
-const crypto = require('crypto')
+const keyspace = require('keyspace')
 const ldu = require('../lib/level-du')
-const keyTmpl = '0000000000000000'
+const window = 1000
+const progressWindow = window * 100
 
 exports.defaults = {
   benchmark: {
@@ -10,21 +11,29 @@ exports.defaults = {
     batchSize: 1e3,
     concurrency: 1,
     valueSize: 100,
-    chained: false
+    chained: false,
+    keys: 'random',
+    values: 'random',
+    seed: 'seed'
   }
 }
 
-exports.plot = require('./batch-put.plot')
+exports.plot = require('./put.plot')
 
 exports.run = function (factory, stream, options) {
-  stream.write('Elapsed (ms), Entries, Bytes, Last 1000 Avg Time, MB/s\n')
-
-  function make16CharPaddedKey () {
-    const r = Math.floor(Math.random() * options.n)
-    const k = keyTmpl + r
-
-    return k.substr(k.length - 16)
+  if (options.batchSize <= 0 || options.batchSize > window) {
+    throw new RangeError('The "batchSize" option must be > 0 <= ' + window)
+  } else if (options.batchSize % 10 !== 0) {
+    throw new Error('The "batchSize" option must be a multiple of 10')
+  } else if (options.batchSize > options.n) {
+    throw new RangeError('The "batchSize" option must be <= n')
+  } else if (options.n % options.batchSize !== 0) {
+    throw new Error('The "n" option must be a multiple of "batchSize"')
   }
+
+  const generator = keyspace(options.n, options)
+
+  stream.write('Elapsed (ms), Entries, Bytes, SMA ms/write, CMA MB/s\n')
 
   function start (db) {
     const startTime = Date.now()
@@ -39,7 +48,7 @@ exports.run = function (factory, stream, options) {
     function report () {
       console.log(
         'Wrote', options.n, 'entries in',
-        Math.floor((Date.now() - startTime) / 1000) + 's,',
+        Math.floor((Date.now() - startTime) / 1e3) + 's,',
         (Math.floor((totalBytes / 1048576) * 100) / 100) + 'MB'
       )
 
@@ -61,20 +70,19 @@ exports.run = function (factory, stream, options) {
 
       inProgress++
 
-      if (totalWrites % 100000 === 0) {
+      if (totalWrites % progressWindow === 0) {
         console.log('' + inProgress, totalWrites,
           Math.round(totalWrites / options.n * 100) + '%')
       }
 
-      // TODO: batchSize should be a multiple of 10
-      if (totalWrites % 1000 === 0) {
+      if (totalWrites % window === 0) {
         elapsed = Date.now() - startTime
         stream.write(
           elapsed +
           ',' + totalWrites +
           ',' + totalBytes +
-          ',' + Math.floor(timesAccum / 1000) +
-          ',' + (Math.floor(((totalBytes / 1048576) / (elapsed / 1000)) * 100) / 100) +
+          ',' + (timesAccum / window / 1e6).toFixed(3) +
+          ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
           '\n')
         timesAccum = 0
       }
@@ -85,10 +93,11 @@ exports.run = function (factory, stream, options) {
         const batch = db.batch()
 
         for (let i = 0; i < batchSize; i++) {
-          // TODO: see comment in write.js
-          const key = make16CharPaddedKey()
-          const value = crypto.randomBytes(options.valueSize).toString('hex')
+          const key = generator.key(totalWrites++)
+          const value = generator.value()
 
+          // TODO: see comment in put.js
+          totalBytes += Buffer.byteLength(key) + Buffer.byteLength(value)
           batch.put(key, value)
         }
 
@@ -98,10 +107,11 @@ exports.run = function (factory, stream, options) {
         const ops = new Array(batchSize)
 
         for (let i = 0; i < batchSize; i++) {
-          // TODO: see comment in write.js
-          const key = make16CharPaddedKey()
-          const value = crypto.randomBytes(options.valueSize).toString('hex')
+          const key = generator.key(totalWrites++)
+          const value = generator.value()
 
+          // TODO: see comment in put.js
+          totalBytes += Buffer.byteLength(key) + Buffer.byteLength(value)
           ops[i] = { type: 'put', key, value }
         }
 
@@ -115,8 +125,6 @@ exports.run = function (factory, stream, options) {
         const duration = process.hrtime(start)
         const nano = (duration[0] * 1e9) + duration[1]
 
-        totalBytes += (keyTmpl.length + options.valueSize) * batchSize
-        totalWrites += batchSize
         timesAccum += nano
         inProgress--
 

@@ -2,6 +2,7 @@
 
 const e = require('../lib/escape-gnuplot-string')
 
+// Note: also used by the batch-put benchmark.
 module.exports = function (title, description, results) {
   const durations = results.map(function (res, i) {
     const file = res.csvFile

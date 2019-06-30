@@ -117,7 +117,7 @@ Yet to document.
 
 ### `put`
 
-Perform concurrent `put()` operations on random or sequential string keys and values. Records the Simple Moving Average (SMA) of the duration of the last 1000 writes, as well as the Cumulative Moving Average (CMA) of the throughput in MB/s. Options:
+Perform concurrent `put()` operations. Records the Simple Moving Average (SMA) of the duration of the last 1000 writes, as well as the Cumulative Moving Average (CMA) of the throughput in MB/s. Options:
 
 - `-n`: amount of operations, default 1e6
 - `--concurrency`: default 4
@@ -143,13 +143,12 @@ Tips:
 
 ### `batch-put`
 
-Same as `put`, but in batches rather than singular puts. Perform concurrent `batch()` operations on random string keys and values. Options:
+Perform concurrent `batch()` operations. Same as `put`, but in batches rather than singular puts. Options:
 
-- `-n`: amount of operations, default 1e6
-- `--batchSize`: default 1000
+- `--batchSize`: default 1000, must be a multiple of 10, maximum 1000
 - `--chained`: boolean flag, default false, use chained batch
 - `--concurrency`: default 1
-- `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`)
+- Other options are the same as of the `put` benchmark, see above.
 
 ### `self-distribution`
 
