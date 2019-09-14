@@ -58,6 +58,7 @@ module.exports = function inject (Redis) {
       },
 
       // Trick reachdown
+      _batch: function () {},
       _iterator: function () {}
     }
 

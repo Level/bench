@@ -49,6 +49,7 @@ module.exports = function inject (sqlite3) {
       },
 
       // Trick reachdown
+      _batch: function () {},
       _iterator: function () {}
     }
 
