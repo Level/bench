@@ -21,7 +21,7 @@
     "fast-glob": "~2.2.7",
     "human-number": "~1.0.3",
     "keyspace": "^0.0.1",
-    "level-test": "~7.0.0",
+    "level-test": "^7.1.0",
     "mkdirp": "~0.5.1",
     "reachdown": "~1.0.0",
     "resolve": "~1.11.0",
