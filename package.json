@@ -13,20 +13,20 @@
     "prepublishOnly": "npm run dependency-check"
   },
   "dependencies": {
-    "bytes": "~3.1.0",
+    "bytes": "^3.1.0",
     "current-commit": "0.0.0",
     "deep-extend": "~0.6.0",
     "du": "^1.0.0",
-    "fast-deep-equal": "~2.0.1",
+    "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.0.4",
-    "human-number": "~1.0.3",
+    "human-number": "^1.0.3",
     "keyspace": "^0.0.1",
     "level-test": "^7.1.0",
     "mkdirp": "~0.5.1",
-    "reachdown": "~1.0.0",
+    "reachdown": "^1.0.0",
     "resolve": "^1.12.0",
-    "subarg": "~1.0.0",
-    "tmp-redis": "~1.0.0"
+    "subarg": "^1.0.0",
+    "tmp-redis": "^1.0.0"
   },
   "devDependencies": {
     "dependency-check": "^4.1.0",
