@@ -9,7 +9,7 @@
     "test": "standard && hallmark && nyc tape test/*.js",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "hallmark": "hallmark --fix",
-    "dependency-check": "dependency-check --missing --unused --no-dev .",
+    "dependency-check": "dependency-check --no-dev .",
     "prepublishOnly": "npm run dependency-check"
   },
   "dependencies": {
@@ -29,7 +29,7 @@
     "tmp-redis": "~1.0.0"
   },
   "devDependencies": {
-    "dependency-check": "^3.3.0",
+    "dependency-check": "^4.1.0",
     "hallmark": "^2.0.0",
     "level-community": "^3.0.0",
     "nyc": "^14.1.1",
