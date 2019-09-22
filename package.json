@@ -6,7 +6,7 @@
   "bin": "level-bench.js",
   "main": "level-bench.js",
   "scripts": {
-    "test": "standard && hallmark && nyc tape test/*.js",
+    "test": "standard && hallmark && (nyc -s tape test/*.js | faucet) && nyc report",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "hallmark": "hallmark --fix",
     "dependency-check": "dependency-check --no-dev .",
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "dependency-check": "^4.1.0",
+    "faucet": "^0.0.1",
     "hallmark": "^2.0.0",
     "level-community": "^3.0.0",
     "nyc": "^14.1.1",
