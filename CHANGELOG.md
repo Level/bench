@@ -1,7 +1,5 @@
 # Changelog
 
-**If you are upgrading:** please see [`UPGRADING.md`](UPGRADING.md).
-
 ## [0.1.0] - 2019-09-22
 
 ### Changed
@@ -34,6 +32,6 @@
 
 :seedling: Initial release.
 
-[0.1.0]: https://github.com/Level/bench/compare/v0.0.1...v0.1.0
+[0.1.0]: https://github.com/Level/bench/releases/tag/v0.1.0
 
-[0.0.1]: https://github.com/Level/bench/compare/v0.0.0...v0.0.1
+[0.0.1]: https://github.com/Level/bench/releases/tag/v0.0.1
