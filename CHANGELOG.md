@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0] - 2021-10-01
+
+### Changed
+
+- Bump `level-test` from 8.x to 9.x ([#27](https://github.com/Level/bench/issues/27)) ([`f6b233c`](https://github.com/Level/bench/commit/f6b233c)) ((Vincent Weevers)
+- Bump `fast-deep-equal` from 2.x to 3.x ([#24](https://github.com/Level/bench/issues/24)) ([`2449c10`](https://github.com/Level/bench/commit/2449c10)) ((Vincent Weevers)
+- Bump `level-test` from 7.x to 8.x ([#17](https://github.com/Level/bench/issues/17)) ([`8221ade`](https://github.com/Level/bench/commit/8221ade)) (Vincent Weevers)
+
+### Added
+
+- Add iterate and clear benchmarks ([#29](https://github.com/Level/bench/issues/29)) ([`d3797b0`](https://github.com/Level/bench/commit/d3797b0)) (Vincent Weevers).
+
+### Removed
+
+- **Breaking:** drop Node.js 8 ([`2ae51af`](https://github.com/Level/bench/commit/2ae51af)) (Vincent Weevers).
+
 ## [0.1.0] - 2019-09-22
 
 ### Changed
@@ -31,6 +47,8 @@
 ## [0.0.1] - 2019-05-26
 
 :seedling: Initial release.
+
+[0.2.0]: https://github.com/Level/bench/releases/tag/v0.2.0
 
 [0.1.0]: https://github.com/Level/bench/releases/tag/v0.1.0
 
