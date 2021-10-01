@@ -19,7 +19,7 @@ module.exports = function (title, description, results) {
 
   const frequencies = results.map(function (res, i) {
     // Sequential keys all have a frequency of 1 which gnuplot can't handle
-    if (/seq/.test(res.meta.options.benchmark.keys)) return
+    if (/seq/.test(res.meta.options.benchmark.keys)) return null
 
     const file = res.csvFile
 
