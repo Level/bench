@@ -40,7 +40,7 @@
   "devDependencies": {
     "dependency-check": "^4.1.0",
     "faucet": "^0.0.1",
-    "hallmark": "^3.1.0",
+    "hallmark": "^4.0.0",
     "nyc": "^15.0.0",
     "standard": "^16.0.3",
     "tape": "^5.0.1"
