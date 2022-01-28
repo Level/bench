@@ -18,9 +18,3 @@ jobs:
         run: npm install
       - name: Test
         run: npm test
-      - name: Coverage
-        run: npm run coverage
-      - name: Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          file: coverage/lcov.info
