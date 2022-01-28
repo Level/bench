@@ -106,7 +106,9 @@ exports.run = function (factory, stream, options) {
       }
 
       function end () {
-        it.end(function (err) {
+        const method = typeof it.close === 'function' ? 'close' : 'end'
+
+        it[method](function (err) {
           if (err) throw err
           inProgress--
           process.nextTick(iterate)
