@@ -11,6 +11,7 @@ exports.defaults = {
     concurrency: 1,
     valueSize: 100,
     buffers: false,
+    nextv: false,
     keys: 'random',
     values: 'random',
     seed: 'seed'
@@ -27,6 +28,8 @@ exports.run = function (factory, stream, options) {
   }
 
   const generator = keyspace(options.n, options)
+  const useNextv = !!options.nextv
+  const nextvSize = useNextv && typeof options.nextv !== 'boolean' ? parseInt(options.nextv, 10) : 1e3
 
   stream.write('Elapsed (ms), Entries, Bytes, ns/read, CMA MB/s\n')
 
@@ -73,36 +76,69 @@ exports.run = function (factory, stream, options) {
         if (totalReads >= options.n) return end()
         const start = process.hrtime()
 
-        it.next(function (err, key, value) {
-          if (err) throw err
-          if (key === undefined && value === undefined) return end()
+        if (useNextv) {
+          it.nextv(nextvSize, function (err, entries) {
+            if (err) throw err
+            if (entries.length === 0) return end()
 
-          const duration = process.hrtime(start)
-          const nano = (duration[0] * 1e9) + duration[1]
+            const duration = process.hrtime(start)
+            const nano = (duration[0] * 1e9) + duration[1]
 
-          timesAccum += nano
-          totalBytes += Buffer.byteLength(key) + Buffer.byteLength(value)
-          totalReads++
+            timesAccum += nano
+            totalBytes += entries.reduce((acc, e) => acc + Buffer.byteLength(e[0]) + Buffer.byteLength(e[1]), 0)
+            totalReads += entries.length
 
-          if (totalReads % progressWindow === 0) {
-            console.log('' + inProgress, totalReads,
-              Math.round(totalReads / options.n * 100) + '%')
-          }
+            if (totalReads % progressWindow === 0) {
+              console.log('' + inProgress, totalReads,
+                Math.round(totalReads / options.n * 100) + '%')
+            }
 
-          if (totalReads % window === 0) {
-            elapsed = Date.now() - startTime
-            stream.write(
-              elapsed +
-              ',' + totalReads +
-              ',' + totalBytes +
-              ',' + (timesAccum / window).toFixed(3) +
-              ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
-              '\n')
-            timesAccum = 0
-          }
+            if (totalReads % window === 0) {
+              elapsed = Date.now() - startTime
+              stream.write(
+                elapsed +
+                ',' + totalReads +
+                ',' + totalBytes +
+                ',' + (timesAccum / window).toFixed(3) +
+                ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
+                '\n')
+              timesAccum = 0
+            }
 
-          loop()
-        })
+            loop()
+          })
+        } else {
+          it.next(function (err, key, value) {
+            if (err) throw err
+            if (key === undefined && value === undefined) return end()
+
+            const duration = process.hrtime(start)
+            const nano = (duration[0] * 1e9) + duration[1]
+
+            timesAccum += nano
+            totalBytes += Buffer.byteLength(key) + Buffer.byteLength(value)
+            totalReads++
+
+            if (totalReads % progressWindow === 0) {
+              console.log('' + inProgress, totalReads,
+                Math.round(totalReads / options.n * 100) + '%')
+            }
+
+            if (totalReads % window === 0) {
+              elapsed = Date.now() - startTime
+              stream.write(
+                elapsed +
+                ',' + totalReads +
+                ',' + totalBytes +
+                ',' + (timesAccum / window).toFixed(3) +
+                ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
+                '\n')
+              timesAccum = 0
+            }
+
+            loop()
+          })
+        }
       }
 
       function end () {
