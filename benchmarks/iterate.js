@@ -1,7 +1,9 @@
 'use strict'
 
 const keyspace = require('keyspace')
+const bytes = require('bytes')
 const ldu = require('../lib/level-du')
+const lcompact = require('../lib/level-compact')
 const window = 1000
 const progressWindow = window * 100
 
@@ -12,7 +14,6 @@ exports.defaults = {
     valueSize: 100,
     buffers: false,
     nextv: false,
-    keys: 'random',
     values: 'random',
     seed: 'seed'
   }
@@ -27,7 +28,11 @@ exports.run = function (factory, stream, options) {
     throw new Error('The "n" option must be a multiple of ' + window)
   }
 
-  const generator = keyspace(options.n, options)
+  const writeGenerator = keyspace(options.n, Object.assign({}, options, {
+    // Writing ordered data in reverse is the fastest (at least in LevelDB)
+    keys: 'seqReverse'
+  }))
+
   const useNextv = !!options.nextv
   const nextvSize = useNextv && typeof options.nextv !== 'boolean' ? parseInt(options.nextv, 10) : 1e3
 
@@ -56,7 +61,7 @@ exports.run = function (factory, stream, options) {
 
         ldu(db, function (err, size) {
           if (err) throw err
-          if (size) console.log('Database size:', Math.floor(size / 1024 / 1024) + 'M')
+          if (size) console.log('Database size:', bytes.format(size))
         })
       })
     }
@@ -68,6 +73,7 @@ exports.run = function (factory, stream, options) {
       inProgress++
 
       const it = db.iterator({
+        // TODO: replace with encoding options
         keyAsBuffer: options.buffers,
         valueAsBuffer: options.buffers
       })
@@ -161,23 +167,42 @@ exports.run = function (factory, stream, options) {
     if (err) throw err
 
     let entries = 0
+    let bytesWritten = 0
 
     function loop (err) {
       if (err) throw err
 
-      console.log('Prep: wrote %d of %d entries', entries, options.n)
-      if (entries >= options.n) return setTimeout(() => start(db), 500)
+      if (entries % 1e5 === 0 || entries >= options.n) {
+        console.log('Prep: wrote %d of %d entries (%s)', entries, options.n, bytes.format(bytesWritten))
+      }
+
+      if (entries >= options.n) return compact()
 
       const batch = db.batch()
 
       for (let i = 0; i < 1e3 && entries < options.n; i++) {
-        const key = generator.key(entries++)
-        const value = generator.value()
+        const key = writeGenerator.key(entries++)
+        const value = writeGenerator.value()
 
+        bytesWritten += Buffer.byteLength(key) + Buffer.byteLength(value)
         batch.put(key, value)
       }
 
       batch.write(loop)
+    }
+
+    function compact () {
+      // Flip start & end because writeGenerator is in reverse
+      lcompact(db, writeGenerator.key(entries - 1), writeGenerator.key(0), function (err) {
+        if (err) throw err
+
+        ldu(db, function (err, size) {
+          if (err) throw err
+          if (size) console.log('Database size:', bytes.format(size))
+
+          setTimeout(() => start(db), 500)
+        })
+      })
     }
 
     loop()

@@ -31,6 +31,7 @@
     "fast-glob": "^3.0.4",
     "human-number": "^1.0.3",
     "keyspace": "^0.0.1",
+    "level-read-stream": "^1.0.1",
     "level-test": "^9.0.0",
     "mkdirp": "~0.5.1",
     "reachdown": "^1.0.0",
