@@ -173,6 +173,14 @@ Perform `get()` operations. Inserts `-n` sequential keys into the database, then
 - `--valueSize`: size of value, as a number in bytes or string with unit (e.g. `--valueSize 1kb`).
 - `--valueEncoding`: valueEncoding option for `get()`. Defaults to none which means the default of the db will be used.
 
+### `iterate`
+
+Yet to document.
+
+### `stream`
+
+Yet to document.
+
 ### `self-distribution`
 
 _Not a benchmark, but a temporary cheat to reuse the tooling we have here to test (and visualize) some of the internals. Needs a valid `target` argument, same as real benchmarks, although that argument is not actually used._
