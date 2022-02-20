@@ -4,7 +4,8 @@ const keyspace = require('keyspace')
 const bytes = require('bytes')
 const ldu = require('../lib/level-du')
 const lcompact = require('../lib/level-compact')
-const { EntryStream } = require('level-read-stream')
+const { EntryStream: NodeStream } = require('level-read-stream')
+const { EntryStream: WebStream } = require('level-web-stream')
 const window = 1000
 const progressWindow = window * 100
 
@@ -14,7 +15,8 @@ exports.defaults = {
     concurrency: 1,
     valueSize: 100,
     values: 'random',
-    seed: 'seed'
+    seed: 'seed',
+    web: false
   }
 }
 
@@ -27,6 +29,7 @@ exports.run = function (factory, stream, options) {
     throw new Error('The "n" option must be a multiple of ' + window)
   }
 
+  const webStreams = !!options.web
   const writeGenerator = keyspace(options.n, Object.assign({}, options, {
     // Writing ordered data in reverse is the fastest (at least in LevelDB)
     keys: 'seqReverse'
@@ -36,7 +39,7 @@ exports.run = function (factory, stream, options) {
 
   function start (db) {
     const startTime = Date.now()
-    const builtin = typeof db.createReadStream === 'function'
+    const builtin = !webStreams && typeof db.createReadStream === 'function'
 
     let inProgress = 0
     let totalReads = 0
@@ -74,23 +77,42 @@ exports.run = function (factory, stream, options) {
       if (totalReads >= options.n) return report(Date.now() - startTime)
       if (inProgress >= options.concurrency) return
 
-      const rs = builtin ? db.createReadStream() : new EntryStream(db)
+      const rs = webStreams ? new WebStream(db) : builtin ? db.createReadStream() : new NodeStream(db)
 
       inProgress++
       let start = process.hrtime()
 
-      rs.on('data', ondata)
-      rs.once('close', function () {
+      if (webStreams) {
+        // This is slower. I'd expect it to be faster because ondata is sync
+        // const { WritableStream, CountQueuingStrategy } = require('stream/web')
+        // const strategy = new CountQueuingStrategy({ highWaterMark: 1e3 })
+        // const ws = new WritableStream({ write: ondata }, strategy)
+        // rs.pipeTo(ws).then(onclose)
+
+        ;(async () => {
+          for await (const x of rs) {
+            ondata(x)
+          }
+        })().then(onclose)
+      } else {
+        rs.on('data', ondata)
+        rs.once('close', onclose)
+      }
+
+      function onclose () {
         inProgress--
         process.nextTick(work)
-      })
+      }
 
       function ondata (entry) {
         const duration = process.hrtime(start)
         const nano = (duration[0] * 1e9) + duration[1]
+        const byteLength = webStreams
+          ? Buffer.byteLength(entry[0]) + Buffer.byteLength(entry[1])
+          : Buffer.byteLength(entry.key) + Buffer.byteLength(entry.value)
 
         timesAccum += nano
-        totalBytes += Buffer.byteLength(entry.key) + Buffer.byteLength(entry.value)
+        totalBytes += byteLength
         totalReads++
 
         start = process.hrtime()

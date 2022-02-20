@@ -33,6 +33,7 @@
     "keyspace": "^0.0.1",
     "level-read-stream": "^1.0.1",
     "level-test": "^9.0.0",
+    "level-web-stream": "^1.0.0",
     "mkdirp": "~0.5.1",
     "reachdown": "^1.0.0",
     "resolve": "^1.12.0",
