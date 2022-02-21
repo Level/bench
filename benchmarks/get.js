@@ -15,7 +15,8 @@ exports.defaults = {
     valueSize: 100,
     keys: 'random',
     values: 'random',
-    seed: 'seed'
+    seed: 'seed',
+    sync: false
   }
 }
 
@@ -26,11 +27,16 @@ exports.run = function (factory, stream, options) {
     throw new RangeError('The "n" option must be >= ' + window)
   }
 
+  const sync = !!options.sync
   const readGenerator = keyspace(options.n, options)
   const writeGenerator = keyspace(options.n, Object.assign({}, options, {
     // Writing ordered data in reverse is the fastest (at least in LevelDB)
     keys: 'seqReverse'
   }))
+
+  if (sync && options.concurrency !== 1) {
+    throw new Error('concurrency must be 1 in sync mode')
+  }
 
   stream.write('Elapsed (ms), Entries, Bytes, SMA ms/read, CMA MB/s\n')
 
@@ -134,6 +140,17 @@ exports.run = function (factory, stream, options) {
       const key = readGenerator.key(totalReads++)
       const start = process.hrtime()
 
+      if (sync) {
+        const value = db.getSync(key, getOptions)
+        const duration = process.hrtime(start)
+        const nano = (duration[0] * 1e9) + duration[1]
+
+        totalBytes += Buffer.byteLength(value)
+        timesAccum += nano
+        inProgress--
+        return
+      }
+
       db.get(key, getOptions, function (err, value) {
         if (err) throw err
 
@@ -148,7 +165,12 @@ exports.run = function (factory, stream, options) {
       })
     }
 
-    for (let i = 0; i < options.concurrency; i++) get()
+    if (sync) {
+      while (totalReads < options.n) get()
+      report()
+    } else {
+      for (let i = 0; i < options.concurrency; i++) get()
+    }
   }
 
   // TODO (once stream is sync): skip setTimeout
