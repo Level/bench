@@ -8,6 +8,7 @@ updates:
       - dependency-name: dependency-check
       - dependency-name: mkdirp
       - dependency-name: standard
+      - dependency-name: tempy
   - package-ecosystem: github-actions
     directory: /
     schedule:
