@@ -50,7 +50,7 @@ exports.run = function (factory, stream, options) {
     function report () {
       console.log(
         'Iterated', options.n, 'entries in',
-        Math.floor((Date.now() - startTime) / 1e3) + 's,',
+        ((Date.now() - startTime) / 1e3).toFixed(1) + 's,',
         (Math.floor((totalBytes / 1048576) * 100) / 100) + 'MB'
       )
 
