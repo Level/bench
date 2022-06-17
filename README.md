@@ -1,7 +1,6 @@
 # level-bench
 
-> **Benchmark [`abstract-leveldown`](https://github.com/Level/abstract-leveldown) and [`levelup`](https://github.com/Level/levelup) stores.**  
-> Currently only suitable for use in Node.js.
+**Benchmark [`abstract-level`](https://github.com/Level/abstract-level) databases.** Currently only suitable for use in Node.js.
 
 [![level badge][level-badge]](https://github.com/Level/awesome)
 [![npm](https://img.shields.io/npm/v/level-bench.svg)](https://www.npmjs.com/package/level-bench)
@@ -15,13 +14,14 @@
 ## Example
 
 ```
-npm i level-bench leveldown rocksdb
-npx level-bench run put leveldown
-npx level-bench run put rocksdb
-npx level-bench plot put
+npm i level-bench classic-level
+npx level-bench run batch-put classic-level -c ClassicLevel
+npx level-bench run batch-put classic-level -c ClassicLevel --b [ --keys seq ]
+npx level-bench run batch-put classic-level -c ClassicLevel --b [ --keys seqReverse ]
+npx level-bench plot batch-put
 ```
 
-Yields (outdated):
+Yields the following (showing that writing keys in reverse sequential order is fastest):
 
 ![Example plot](example.png)
 
@@ -31,8 +31,6 @@ Yields (outdated):
 - Compare benchmarks of different targets or options
 - Derives plot labels from benchmark metadata (package, platform, ..)
 - Uses unique temporary directories for every db
-- Can optionally wrap the db in `encoding-down` and/or `levelup`
-- Also takes `level` or something else that's already a `levelup` interface
 - Also takes `ioredis` and `sqlite3` (see [`third-party/`](./third-party)).
 
 ## Usage
@@ -41,11 +39,9 @@ Yields (outdated):
 
 Run a benchmark. The `benchmark` argument must be one of the named benchmarks listed below.
 
-The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run put leveldown`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`.
+The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run put classic-level -c ClassicLevel`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`. If the module doesn't have a default export, pass a `--class` or `-c` option to use a named export by that name.
 
-To wrap `target` with `encoding-down` or `levelup` (you must install these dependencies yourself) pass `--encode` and/or `--levelup` (or `-el` for short). Alternatively `target` can be something that exports a `levelup` interface, for example `level-bench run put level`.
-
-If `target` does not create persistent databases (like `memdown` or `level-mem`) you must pass `--mem`.
+If `target` does not create persistent databases (like `memory-level`) you must pass `--mem`.
 
 Options for the db can be provided via `--db <subargs>`. For example `--db [ --cacheSize 16mb ]` or `--db [ --valueEncoding json ]`. Note that the brackets must be surrounded by spaces.
 
@@ -58,32 +54,25 @@ Results are by default written to `.benchmarks/<benchmark>.<time>.csv` and an ac
 We can compare the performance of two git branches:
 
 ```
-git checkout master && npm i
-level-bench run put
+git checkout main && npm i
+level-bench run put -c Level
 
 git checkout wip && npm i
-level-bench run put
+level-bench run put -c Level
 ```
 
-Or check the overhead of `encoding-down`:
+Or check the overhead of a specific encoding:
 
 ```
-level-bench run put memdown --mem
-level-bench run put memdown --mem --encode
-```
-
-Or a specific encoding:
-
-```
-level-bench run put level --db [ --valueEncoding utf8 ]
-level-bench run put level --db [ --valueEncoding json ]
+level-bench run put level -c Level --db [ --valueEncoding utf8 ]
+level-bench run put level -c Level --db [ --valueEncoding json ]
 ```
 
 Or compare the effect of options:
 
 ```
-level-bench run put leveldown
-level-bench run put leveldown --db [ --no-compression ]
+level-bench run put classic-level -c ClassicLevel
+level-bench run put classic-level -c ClassicLevel --db [ --no-compression ]
 ```
 
 Then plot both (or more) runs with:
@@ -91,15 +80,6 @@ Then plot both (or more) runs with:
 ```
 level-bench plot put
 ```
-
-<!-- Lastly, for the adventurous, you can swap out the prototype of `target` with for example some branch of `abstract-leveldown`:
-
-```
-npm i memdown Level/abstract-leveldown#improved
-
-level-bench run put memdown --name baseline
-level-bench run put memdown --proto abstract-leveldown --name improved
-``` -->
 
 #### Options
 
@@ -193,9 +173,9 @@ Generate keys with a certain order and probability distribution. Options:
 Example:
 
 ```
-level-bench run self-distribution memdown -b [ --distribution zipfian --skew 1 ]
-level-bench run self-distribution memdown -b [ --distribution zipfian --skew=-1 ]
-level-bench run self-distribution memdown -b [ --keys seq ]
+level-bench run self-distribution memory-level -c MemoryLevel -b [ --distribution zipfian --skew 1 ]
+level-bench run self-distribution memory-level -c MemoryLevel -b [ --distribution zipfian --skew=-1 ]
+level-bench run self-distribution memory-level -c MemoryLevel -b [ --keys seq ]
 level-bench plot self-distribution
 ```
 
@@ -206,7 +186,7 @@ level-bench plot self-distribution
 
 ## Limitations
 
-The target `abstract-leveldown` implementation must take a `location` as its first argument (if persistent) or ignore that argument (if transient). Options are passed to both the constructor with the signature `(location, options)` and to `db.open(options, callback)`.
+The target `abstract-level` implementation must take a `location` as its first argument (if persistent) or ignore that argument (if transient). Options are passed to both the constructor with the signature `(location, options)` and to `db.open(options, callback)`.
 
 ## Contributing
 

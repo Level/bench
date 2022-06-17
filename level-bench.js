@@ -16,11 +16,10 @@ if (/\[\[|\]\]/.test(process.argv.slice(2).join(' '))) {
 }
 
 const argv = require('subarg')(process.argv.slice(2), {
-  boolean: ['encode', 'levelup'],
+  boolean: [],
   alias: {
-    encode: 'e',
-    levelup: 'l',
     benchmark: 'b',
+    class: 'c',
     out: 'o'
   }
 })

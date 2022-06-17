@@ -1,7 +1,7 @@
 {
   "name": "level-bench",
   "version": "0.2.0",
-  "description": "Benchmark abstract-leveldown and levelup stores",
+  "description": "Benchmark abstract-level databases",
   "license": "MIT",
   "bin": "level-bench.js",
   "main": "level-bench.js",
@@ -53,8 +53,7 @@
   "homepage": "https://github.com/Level/bench",
   "keywords": [
     "level",
-    "levelup",
-    "abstract-leveldown",
+    "abstract-level",
     "benchmark"
   ],
   "engines": {
