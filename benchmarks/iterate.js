@@ -12,7 +12,6 @@ exports.defaults = {
     n: 1e6,
     concurrency: 1,
     valueSize: 100,
-    buffers: false,
     nextv: false,
     values: 'random',
     seed: 'seed'
@@ -35,6 +34,10 @@ exports.run = function (factory, stream, options) {
 
   const useNextv = !!options.nextv
   const nextvSize = useNextv && typeof options.nextv !== 'boolean' ? parseInt(options.nextv, 10) : 1e3
+  const iteratorOptions = {}
+
+  if (options.keyEncoding) iteratorOptions.keyEncoding = options.keyEncoding
+  if (options.valueEncoding) iteratorOptions.valueEncoding = options.valueEncoding
 
   stream.write('Elapsed (ms), Entries, Bytes, ns/read, CMA MB/s\n')
 
@@ -72,11 +75,7 @@ exports.run = function (factory, stream, options) {
 
       inProgress++
 
-      const it = db.iterator({
-        // TODO: replace with encoding options
-        keyAsBuffer: options.buffers,
-        valueAsBuffer: options.buffers
-      })
+      const it = db.iterator(iteratorOptions)
 
       function loop () {
         if (totalReads >= options.n) return end()
