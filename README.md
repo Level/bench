@@ -15,9 +15,9 @@
 
 ```
 npm i level-bench classic-level
-npx level-bench run batch-put classic-level -c ClassicLevel
-npx level-bench run batch-put classic-level -c ClassicLevel --b [ --keys seq ]
-npx level-bench run batch-put classic-level -c ClassicLevel --b [ --keys seqReverse ]
+npx level-bench run batch-put classic-level
+npx level-bench run batch-put classic-level --b [ --keys seq ]
+npx level-bench run batch-put classic-level --b [ --keys seqReverse ]
 npx level-bench plot batch-put
 ```
 
@@ -39,7 +39,7 @@ Yields the following (showing that writing keys in reverse sequential order is f
 
 Run a benchmark. The `benchmark` argument must be one of the named benchmarks listed below.
 
-The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run put classic-level -c ClassicLevel`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`. If the module doesn't have a default export, pass a `--class` or `-c` option to use a named export by that name.
+The `target` argument should be a path or an npm package name that is installed nearby (for example `level-bench run put classic-level`). It defaults to the current working directory. A `package.json` must exist alongside the resolved `target`. If the module doesn't have a default export and it has more than one named export, pass a `--class` or `-c` option to use the named export by that name (for example `level-bench run put classic-level -c ClassicLevel`).
 
 If `target` does not create persistent databases (like `memory-level`) you must pass `--mem`.
 
@@ -55,24 +55,24 @@ We can compare the performance of two git branches:
 
 ```
 git checkout main && npm i
-level-bench run put -c Level
+level-bench run put
 
 git checkout wip && npm i
-level-bench run put -c Level
+level-bench run put
 ```
 
 Or check the overhead of a specific encoding:
 
 ```
-level-bench run put level -c Level --db [ --valueEncoding utf8 ]
-level-bench run put level -c Level --db [ --valueEncoding json ]
+level-bench run put level --db [ --valueEncoding utf8 ]
+level-bench run put level --db [ --valueEncoding json ]
 ```
 
 Or compare the effect of options:
 
 ```
-level-bench run put classic-level -c ClassicLevel
-level-bench run put classic-level -c ClassicLevel --db [ --no-compression ]
+level-bench run put classic-level
+level-bench run put classic-level --db [ --no-compression ]
 ```
 
 Then plot both (or more) runs with:
@@ -173,9 +173,9 @@ Generate keys with a certain order and probability distribution. Options:
 Example:
 
 ```
-level-bench run self-distribution memory-level -c MemoryLevel -b [ --distribution zipfian --skew 1 ]
-level-bench run self-distribution memory-level -c MemoryLevel -b [ --distribution zipfian --skew=-1 ]
-level-bench run self-distribution memory-level -c MemoryLevel -b [ --keys seq ]
+level-bench run self-distribution memory-level -b [ --distribution zipfian --skew 1 ]
+level-bench run self-distribution memory-level -b [ --distribution zipfian --skew=-1 ]
+level-bench run self-distribution memory-level -b [ --keys seq ]
 level-bench plot self-distribution
 ```
 
