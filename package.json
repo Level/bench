@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "dependency-check": "^4.1.0",
-    "faucet": "^0.0.1",
+    "faucet": "^0.0.3",
     "hallmark": "^4.0.0",
     "nyc": "^15.0.0",
     "standard": "^16.0.3",
