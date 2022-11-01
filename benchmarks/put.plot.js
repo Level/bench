@@ -31,12 +31,15 @@ module.exports = function (title, description, results) {
   set key outside tc rgb "#999999"
   set border lc rgb "#999999"
 
-  # To plot more than 5 files, add more line styles
+  # To plot more than 8 files, add more line styles
   set style line 1 lt 7 ps 0.8 lc rgb "#00FFFF"
   set style line 2 lt 7 ps 0.8 lc rgb "#D84797"
   set style line 3 lt 7 ps 0.8 lc rgb "#23CE6B"
   set style line 4 lt 7 ps 0.8 lc rgb "#F5B700"
   set style line 5 lt 7 ps 0.8 lc rgb "#731DD8"
+  set style line 6 lt 7 ps 0.8 lc rgb "#FF0000"
+  set style line 7 lt 7 ps 0.8 lc rgb "#999999"
+  set style line 8 lt 7 ps 0.8 lc rgb "#CCCCCC"
 
   set multiplot layout 2,1
     set lmargin at screen 0.1

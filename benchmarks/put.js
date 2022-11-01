@@ -1,6 +1,7 @@
 'use strict'
 
 const keyspace = require('keyspace')
+const StudentHistogram = require('student-histogram')
 const ldu = require('../lib/level-du')
 
 exports.defaults = {
@@ -16,8 +17,10 @@ exports.defaults = {
 
 exports.plot = require('./put.plot')
 
-exports.run = function (factory, stream, options) {
+exports.run = function (factory, stream, options, cb) {
   const generator = keyspace(options.n, options)
+  const h = new StudentHistogram(1, 1000, 3)
+  const iterations = 1000
 
   stream.write('Elapsed (ms), Entries, Bytes, SMA ms/write, CMA MB/s\n')
 
@@ -27,15 +30,27 @@ exports.run = function (factory, stream, options) {
     let inProgress = 0
     let totalWrites = 0
     let totalBytes = 0
-    let timesAccum = 0
+    let timesAccum = 0 // TODO: use BigInt
     let elapsed
 
     function report () {
       console.log(
         'Wrote', options.n, 'entries in',
-        Math.floor((Date.now() - startTime) / 1000) + 's,',
+        ((Date.now() - startTime) / 1e3).toFixed(2) + 's,',
         (Math.floor((totalBytes / 1048576) * 100) / 100) + 'MB'
       )
+
+      // Use arithmetic mean for averaging times
+      const meanDurationMs = h.mean() || 0
+      const period = meanDurationMs / iterations
+      const stats = {
+        hertz: period ? 1 / (period / 1e3) : 0,
+        rme: h.rme(),
+        op: {
+          mean: period,
+          moe: h.moe() / iterations
+        }
+      }
 
       stream.end()
 
@@ -45,6 +60,8 @@ exports.run = function (factory, stream, options) {
         ldu(db, function (err, size) {
           if (err) throw err
           if (size) console.log('Database size:', Math.floor(size / 1024 / 1024) + 'M')
+
+          cb(null, stats)
         })
       })
     }
@@ -60,15 +77,24 @@ exports.run = function (factory, stream, options) {
           Math.round(totalWrites / options.n * 100) + '%')
       }
 
-      if (totalWrites % 1000 === 0) {
+      if (totalWrites % iterations === 0) {
         elapsed = Date.now() - startTime
+
+        const timesAccumMs = timesAccum / 1e6
+        const totalMB = totalBytes / 1048576
+
         stream.write(
           elapsed +
           ',' + totalWrites +
           ',' + totalBytes +
-          ',' + (timesAccum / 1000 / 1e6).toFixed(3) +
-          ',' + ((totalBytes / 1048576) / (elapsed / 1e3)).toFixed(3) +
+          ',' + (timesAccumMs / iterations).toFixed(3) + // SMA ms/write
+          ',' + (totalMB / (elapsed / 1e3)).toFixed(3) + // CMA MB/s
           '\n')
+
+        if (!h.record(timesAccumMs)) {
+          throw new RangeError(`Histogram could not record ${timesAccumMs}`)
+        }
+
         timesAccum = 0
       }
 
