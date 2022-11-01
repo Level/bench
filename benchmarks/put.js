@@ -92,7 +92,8 @@ exports.run = function (factory, stream, options, cb) {
           '\n')
 
         if (!h.record(timesAccumMs)) {
-          throw new RangeError(`Histogram could not record ${timesAccumMs}`)
+          // TBD how to handle this rare case; rerunning the benchmark will suffice for now
+          console.error('Outlier %d (min: %d, max: %d)', timesAccumMs, h.min(), h.max())
         }
 
         timesAccum = 0
